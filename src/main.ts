@@ -1,3 +1,4 @@
+// TODO: scope down imports
 // standard actions and github api libraries
 import * as core from '@actions/core'
 import * as github from '@actions/github'
@@ -32,20 +33,14 @@ async function run(): Promise<void> {
     // in the pull request or repository we are issued from
     const context = github.context
     const repo = context.repo
-    const workflow = context.workflow.toLowerCase().replace(/ /g, '_')
+    const workflow = context.workflow.toLowerCase().replaceAll(' ', '_')
     const pullRequestNumber = github.context.payload.pull_request?.number
 
     // if teams is defined, convert to tags
-    let teamTags = []
-    if (teams) {
-      teamTags = JSON.parse(teams).map((item: string) => `team:${item}`)
-    }
+    const teamTags = JSON.parse(teams).map((item: string) => `team:${item}`)
 
     // if customTags is defined, convert to array
-    let customTagsParsed = []
-    if (customTags) {
-      customTagsParsed = JSON.parse(customTags)
-    }
+    const customTagsParsed = JSON.parse(customTags)
 
     // here: https://octokit.github.io/rest.js/v18
     const octokit = github.getOctokit(githubToken)
