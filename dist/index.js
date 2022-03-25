@@ -48,7 +48,7 @@ const metrics = __importStar(__nccwpck_require__(4299));
 function run() {
     var _a;
     return __awaiter(this, void 0, void 0, function* () {
-        core.debug('dpm starting ...');
+        core.info('dpm starting ...');
         try {
             if (github.context.eventName !== 'pull_request') {
                 throw new Error('Can only run on pull requests.');
@@ -118,7 +118,7 @@ function run() {
             const { data: files } = yield octokit.rest.pulls.listFiles(Object.assign(Object.assign({}, repo), { pull_number: pullRequestNumber !== null && pullRequestNumber !== void 0 ? pullRequestNumber : 0 }));
             const changedFiles = files.map(f => f.filename).length;
             metrics.increment('changed_files', changedFiles);
-            core.debug('flushing metrics to datadog ...');
+            core.info('flushing metrics to datadog ...');
             metrics.flush();
         }
         catch (err) {
