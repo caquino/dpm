@@ -46,7 +46,7 @@ const github = __importStar(__nccwpck_require__(5438));
 // datadog api library
 const metrics = __importStar(__nccwpck_require__(4299));
 function run() {
-    var _a;
+    var _a, _b;
     return __awaiter(this, void 0, void 0, function* () {
         core.info('dpm starting ...');
         try {
@@ -104,6 +104,10 @@ function run() {
                 const mergedAt = new Date(pullrequest.merged_at).getTime();
                 const mergeTime = Math.abs((mergedAt - createdAt) / 1000);
                 metrics.increment('time_to_merge', mergeTime);
+                metrics.increment('comments', pullrequest.comments);
+                metrics.increment('commits', pullrequest.commits);
+                metrics.increment('assigness', (_b = pullrequest.assignees) === null || _b === void 0 ? void 0 : _b.length);
+                metrics.increment('pullrequests', 1);
             }
             // how many seconds since first commit until pull request was opened
             if (commits[0].commit.committer && commits[0].commit.committer.date) {
@@ -111,9 +115,11 @@ function run() {
                 const openTime = Math.abs((createdAt - firstCommit) / 1000);
                 metrics.increment('time_to_open', openTime);
             }
-            // total lines of code changed
+            // code changes
+            metrics.increment('additions', pullrequest.additions);
+            metrics.increment('deletions', pullrequest.deletions);
             const diffSize = pullrequest.additions + pullrequest.deletions;
-            metrics.increment('lines_changed', diffSize);
+            metrics.increment('changes', diffSize);
             // total number of files changed
             // gather files information within pull request
             const { data: files } = yield octokit.rest.pulls.listFiles(Object.assign(Object.assign({}, repo), { pull_number: pullRequestNumber !== null && pullRequestNumber !== void 0 ? pullRequestNumber : 0 }));
