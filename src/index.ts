@@ -78,6 +78,7 @@ async function run(): Promise<void> {
     const createdAt = new Date(pullrequest.created_at).getTime()
 
     if (github.context.action === 'closed') {
+      core.info('pull_request:close received, generating metrics ...')
       // how many seconds took for the pull request be merged
       if (pullrequest.merged_at) {
         const mergedAt = new Date(pullrequest.merged_at).getTime()
@@ -118,6 +119,7 @@ async function run(): Promise<void> {
     }
 
     if (github.context.action === 'opened') {
+      core.info('pull_request:opened received, generating metrics ...')
       // how many seconds since first commit until pull request was opened
       if (commits[0].commit.committer && commits[0].commit.committer.date) {
         const firstCommit = new Date(commits[0].commit.committer.date).getTime()
