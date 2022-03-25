@@ -4,15 +4,12 @@ on:
     types: [opened, closed]
 jobs:
   metrics:
-    if: |
-      (github.event.action == 'closed' &&
-      github.event.pull_request.merged == true) ||
-      github.event.action == 'opened'
+   
     name: Track merge request activity
     runs-on: ubuntu-latest
     steps:
       - id: datadog-metrics
-        uses: caquino/dpm@v1.0.1
+        uses: caquino/dpm@v1.0.2
         with:
           metrics-prefix: 'github.action'
           teams: '[ "dpm", "development", "devops" ]'

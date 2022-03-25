@@ -9,20 +9,17 @@ async function run(): Promise<void> {
   core.debug('dpm starting ...')
   try {
     if (github.context.eventName !== 'pull_request') {
-      core.setFailed('Can only run on pull requests.')
-      return
+      throw new Error('Can only run on pull requests.')
     }
 
     const githubToken = core.getInput('github-token')
     if (!githubToken) {
-      core.setFailed('github-token is required')
-      return
+      throw new Error('github-token is required')
     }
 
     const ddapiToken = core.getInput('datadog-api-token')
     if (!ddapiToken) {
-      core.setFailed('datadog-api-token is required')
-      return
+      throw new Error('datadog-api-token is required')
     }
 
     const metricsPrefix = core.getInput('metrics-prefix') || 'dpm'
@@ -46,8 +43,7 @@ async function run(): Promise<void> {
     const octokit = github.getOctokit(githubToken)
 
     if (pullRequestNumber !== undefined) {
-      core.setFailed('pullRequestNumber cannot be undefined')
-      return
+      throw new Error('pullRequestNumber cannot be undefined')
     }
 
     // initialize datadog api
