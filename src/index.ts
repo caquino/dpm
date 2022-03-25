@@ -39,7 +39,7 @@ async function run(): Promise<void> {
     // here: https://octokit.github.io/rest.js/v18
     const octokit = github.getOctokit(githubToken)
 
-    if (pullRequestNumber !== undefined) {
+    if (pullRequestNumber === undefined) {
       throw new Error('pullRequestNumber cannot be undefined')
     }
 
