@@ -99,32 +99,46 @@ function run() {
             //const baseBranch = pullrequest.base.ref
             //const defaultBranch = pullrequest.base.repo.default_branch
             const createdAt = new Date(pullrequest.created_at).getTime();
-            // how many seconds took for the pull request be merged
-            if (pullrequest.merged_at) {
-                const mergedAt = new Date(pullrequest.merged_at).getTime();
-                const mergeTime = Math.abs((mergedAt - createdAt) / 1000);
-                metrics.increment('time_to_merge', mergeTime);
+            if (github.context.action === 'closed') {
+                // how many seconds took for the pull request be merged
+                if (pullrequest.merged_at) {
+                    const mergedAt = new Date(pullrequest.merged_at).getTime();
+                    const mergeTime = Math.abs((mergedAt - createdAt) / 1000);
+                    metrics.increment('time_to_merge', mergeTime);
+                }
+                // number of comments
                 metrics.increment('comments', pullrequest.comments);
+                // number of commits
                 metrics.increment('commits', pullrequest.commits);
+                // number of assigness
                 metrics.increment('assigness', (_b = pullrequest.assignees) === null || _b === void 0 ? void 0 : _b.length);
+                // increment pull request counter
                 metrics.increment('pullrequests', 1);
+                // code changes
+                // lines added
+                metrics.increment('additions', pullrequest.additions);
+                // lines closed
+                metrics.increment('deletions', pullrequest.deletions);
+                // total lines changed (additions + deletions)
+                const diffSize = pullrequest.additions + pullrequest.deletions;
+                metrics.increment('changes', diffSize);
+                // total number of files changed
+                // gather files information within pull request
+                const { data: files } = yield octokit.rest.pulls.listFiles(Object.assign(Object.assign({}, repo), { pull_number: pullRequestNumber !== null && pullRequestNumber !== void 0 ? pullRequestNumber : 0 }));
+                const changedFiles = files.map(f => f.filename).length;
+                metrics.increment('changed_files', changedFiles);
+                if (pullrequest.merged === true) {
+                    metrics.increment('merged', 1);
+                }
             }
-            // how many seconds since first commit until pull request was opened
-            if (commits[0].commit.committer && commits[0].commit.committer.date) {
-                const firstCommit = new Date(commits[0].commit.committer.date).getTime();
-                const openTime = Math.abs((createdAt - firstCommit) / 1000);
-                metrics.increment('time_to_open', openTime);
+            if (github.context.action === 'opened') {
+                // how many seconds since first commit until pull request was opened
+                if (commits[0].commit.committer && commits[0].commit.committer.date) {
+                    const firstCommit = new Date(commits[0].commit.committer.date).getTime();
+                    const openTime = Math.abs((createdAt - firstCommit) / 1000);
+                    metrics.increment('time_to_open', openTime);
+                }
             }
-            // code changes
-            metrics.increment('additions', pullrequest.additions);
-            metrics.increment('deletions', pullrequest.deletions);
-            const diffSize = pullrequest.additions + pullrequest.deletions;
-            metrics.increment('changes', diffSize);
-            // total number of files changed
-            // gather files information within pull request
-            const { data: files } = yield octokit.rest.pulls.listFiles(Object.assign(Object.assign({}, repo), { pull_number: pullRequestNumber !== null && pullRequestNumber !== void 0 ? pullRequestNumber : 0 }));
-            const changedFiles = files.map(f => f.filename).length;
-            metrics.increment('changed_files', changedFiles);
             core.info('flushing metrics to datadog ...');
             metrics.flush();
         }
