@@ -81,6 +81,10 @@ async function run(): Promise<void> {
       const mergedAt = new Date(pullrequest.merged_at).getTime()
       const mergeTime = Math.abs((mergedAt - createdAt) / 1000)
       metrics.increment('time_to_merge', mergeTime)
+      metrics.increment('comments', pullrequest.comments)
+      metrics.increment('commits', pullrequest.commits)
+      metrics.increment('assigness', pullrequest.assignees?.length)
+      metrics.increment('pullrequests', 1)
     }
 
     // how many seconds since first commit until pull request was opened
@@ -90,9 +94,11 @@ async function run(): Promise<void> {
       metrics.increment('time_to_open', openTime)
     }
 
-    // total lines of code changed
+    // code changes
+    metrics.increment('additions', pullrequest.additions)
+    metrics.increment('deletions', pullrequest.deletions)
     const diffSize = pullrequest.additions + pullrequest.deletions
-    metrics.increment('lines_changed', diffSize)
+    metrics.increment('changes', diffSize)
 
     // total number of files changed
     // gather files information within pull request
