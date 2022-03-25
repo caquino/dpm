@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - id: datadog-metrics
-        uses: caquino/dpm@v1.0.3
+        uses: caquino/dpm@main
         with:
           metrics-prefix: 'github.action'
           teams: '[ "dpm", "development", "devops" ]'
