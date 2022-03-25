@@ -5,6 +5,7 @@ import * as github from '@actions/github'
 import * as metrics from 'datadog-metrics'
 
 async function run(): Promise<void> {
+  core.debug('dpm starting ...')
   try {
     if (github.context.eventName !== 'pull_request') {
       core.setFailed('Can only run on pull requests.')
@@ -113,12 +114,10 @@ async function run(): Promise<void> {
     const changedFiles = files.map(f => f.filename).length
     metrics.increment('changed_files', changedFiles)
 
+    core.debug('flushing metrics to datadog ...')
     metrics.flush()
   } catch (error) {
-    if (error instanceof Error) {
-      core.error(error)
-      core.setFailed(error.message)
-    }
+    if (error instanceof Error) core.setFailed(error.message)
   }
 }
 
