@@ -53,7 +53,7 @@ async function run(): Promise<void> {
       flushIntervalSeconds: 0,
       defaultTags: [
         'env:github',
-        `repository:${repo}`,
+        `repository:${repo.repo}`,
         `workflow:${workflow}`,
         ...customTagsParsed,
         ...teamTags
