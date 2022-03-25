@@ -1,0 +1,25 @@
+name: 'Development Performance Metrics'
+inputs:
+  github-token:
+    description: 'GitHub Token'
+    required: true
+    default: $
+  datadog-api-token:
+    description: 'DataDog Token'
+    required: true
+    default: $
+  metrics-prefix:
+    description: 'Metrics prefix'
+    required: false
+    default: 'dpm'
+  custom-tags: 'Custom tags e.g ["product:gbp", "division:flutter"]'
+    description: 'Custom tags'
+    required: false
+    default: '[]'
+  teams:
+    description: 'Team tags, check README.md for examples.'
+    required: false
+    default: '[]'
+runs:
+  using: 'node12'
+  main: 'dist/index.js'
