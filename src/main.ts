@@ -24,8 +24,8 @@ async function run(): Promise<void> {
     }
 
     const metricsPrefix = core.getInput('metrics-prefix') || 'dpm'
-    const customTags = core.getInput('custom-tags')
-    const teams = core.getInput('teams')
+    const customTags = core.getInput('custom-tags') || '[]'
+    const teams = core.getInput('teams') || '[]'
 
     // the context does for example also include information
     // in the pull request or repository we are issued from
