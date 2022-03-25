@@ -61,7 +61,8 @@ function run() {
             if (!ddapiToken) {
                 throw new Error('datadog-api-token is required');
             }
-            const metricsPrefix = core.getInput('metrics-prefix') || 'dpm';
+            // gather prefix, append '.' to the end if it does not exist.
+            const metricsPrefix = core.getInput('metrics-prefix').replace(/([^.])$/, '$1.') || 'dpm.';
             const customTags = core.getInput('custom-tags') || '[]';
             const teams = core.getInput('teams') || '[]';
             const repo = github.context.repo;
