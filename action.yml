@@ -1,4 +1,5 @@
-name: 'Development Performance Metrics'
+name: 'dpm'
+description: 'Development Performance metrics'
 inputs:
   github-token:
     description: 'GitHub Token'
@@ -12,12 +13,12 @@ inputs:
     description: 'Metrics prefix'
     required: false
     default: 'dpm'
-  custom-tags: 'Custom tags e.g ["product:gbp", "division:flutter"]'
-    description: 'Custom tags'
-    required: false
-    default: '[]'
   teams:
     description: 'Team tags, check README.md for examples.'
+    required: false
+    default: '[]'
+  custom-tags: 
+    description: 'Custom tags e.g ["product:gbp", "division:flutter"]'
     required: false
     default: '[]'
 runs:
