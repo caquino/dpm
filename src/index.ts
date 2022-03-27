@@ -94,6 +94,9 @@ async function run(): Promise<void> {
       // increment pull request counter
       metrics.increment('pullrequests', 1)
 
+      // label metrics
+      metrics.increment('labels', pullrequest.labels.length)
+
       // code changes
       // lines added
       metrics.increment('additions', pullrequest.additions)
