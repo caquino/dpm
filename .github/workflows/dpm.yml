@@ -16,3 +16,5 @@ jobs:
           datadog-api-token: ${{ secrets.DD_API_KEY }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           custom-tags: '["product:dpm", "environment:test"]'
+        env:
+          DEBUG: 'metrics'

@@ -73,7 +73,7 @@ async function run(): Promise<void> {
     //const defaultBranch = pullrequest.base.repo.default_branch
     const createdAt = new Date(pullrequest.created_at).getTime()
 
-    if (github.context.action === 'closed') {
+    if (github.context.payload.action === 'closed') {
       core.info('pull_request:close received, generating metrics ...')
       // how many seconds took for the pull request be merged
       if (pullrequest.merged_at) {
@@ -117,7 +117,7 @@ async function run(): Promise<void> {
       }
     }
 
-    if (github.context.action === 'opened') {
+    if (github.context.payload.action === 'opened') {
       core.info('pull_request:opened received, generating metrics ...')
       // how many seconds since first commit until pull request was opened
       if (commits[0].commit.committer && commits[0].commit.committer.date) {
