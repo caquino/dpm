@@ -65,32 +65,50 @@ function run() {
             }
             // gather prefix, append '.' to the end if it does not exist.
             const metricsPrefix = core.getInput('metrics-prefix').replace(/([^.])$/, '$1.') || 'dpm.';
-            const customTags = core.getInput('custom-tags') || '[]';
-            const teams = core.getInput('teams') || '[]';
             const repo = github.context.repo;
             const workflow = github.context.workflow.toLowerCase().replace(/ /g, '_');
             const pullRequestNumber = (_a = github.context.payload.pull_request) === null || _a === void 0 ? void 0 : _a.number;
             // if teams is defined, convert to tags
-            const teamTags = JSON.parse(teams).map((item) => `team:${item}`);
+            const teams = JSON.parse(core.getInput('teams') || '[]').map((item) => `team:${item}`);
             // if customTags is defined, convert to array
-            const customTagsParsed = JSON.parse(customTags);
+            const customTags = JSON.parse(core.getInput('custom-tags') || '[]');
+            // label whitelist
+            const labelsWhitelist = JSON.parse(core.getInput('labels-whitelist') || '[]').map((item) => item.toLowerCase().replace(/ /g, '_'));
+            // branches whitelist
+            // const branchesWhitelist = JSON.parse(
+            //  core.getInput('branches-whitelist') || '[]'
+            //)
             // here: https://octokit.github.io/rest.js/v18
             const octokit = github.getOctokit(githubToken);
             if (pullRequestNumber === undefined) {
                 throw new Error('pullRequestNumber cannot be undefined');
             }
+            // gather pull request information
+            const { data: pullrequest } = yield octokit.rest.pulls.get(Object.assign(Object.assign({}, repo), { pull_number: pullRequestNumber !== null && pullRequestNumber !== void 0 ? pullRequestNumber : 0 }));
+            // gather commit information within pull request
+            const { data: commits } = yield octokit.rest.pulls.listCommits(Object.assign(Object.assign({}, repo), { pull_number: pullRequestNumber !== null && pullRequestNumber !== void 0 ? pullRequestNumber : 0 }));
+            // extract label name to array and convert to tag format
+            const labelTags = pullrequest.labels
+                .map(({ name }) => name) // extract name from json array of objects
+                .map(name => name === null || name === void 0 ? void 0 : name.toLowerCase().replace(/ /g, '_')) // convert to lowercase and replace spaces by underscore
+                .filter(name => labelsWhitelist.includes(name)) // check if name is on whitelist
+                .filter((x, i, a) => a.indexOf(x) === i) // remove duplicates
+                .map(name => `label:${name}`); // add label: prefix
             // initialize datadog api
             metrics.init({
                 apiKey: ddapiToken,
                 host: 'dpm',
                 prefix: metricsPrefix,
                 flushIntervalSeconds: 0,
-                defaultTags: ['env:github', `repository:${repo.repo}`, `workflow:${workflow}`, ...customTagsParsed, ...teamTags]
+                defaultTags: [
+                    'env:github',
+                    `repository:${repo.repo}`,
+                    `workflow:${workflow}`,
+                    ...customTags,
+                    ...teams,
+                    ...labelTags
+                ]
             });
-            // gather pull request information
-            const { data: pullrequest } = yield octokit.rest.pulls.get(Object.assign(Object.assign({}, repo), { pull_number: pullRequestNumber !== null && pullRequestNumber !== void 0 ? pullRequestNumber : 0 }));
-            // gather commit information within pull request
-            const { data: commits } = yield octokit.rest.pulls.listCommits(Object.assign(Object.assign({}, repo), { pull_number: pullRequestNumber !== null && pullRequestNumber !== void 0 ? pullRequestNumber : 0 }));
             // common info
             //const baseBranch = pullrequest.base.ref
             //const defaultBranch = pullrequest.base.repo.default_branch

@@ -27,18 +27,28 @@ async function run(): Promise<void> {
 
     // gather prefix, append '.' to the end if it does not exist.
     const metricsPrefix = core.getInput('metrics-prefix').replace(/([^.])$/, '$1.') || 'dpm.'
-    const customTags = core.getInput('custom-tags') || '[]'
-    const teams = core.getInput('teams') || '[]'
 
     const repo = github.context.repo
     const workflow = github.context.workflow.toLowerCase().replace(/ /g, '_')
     const pullRequestNumber = github.context.payload.pull_request?.number
 
     // if teams is defined, convert to tags
-    const teamTags = JSON.parse(teams).map((item: string) => `team:${item}`)
+    const teams = JSON.parse(core.getInput('teams') || '[]').map(
+      (item: string) => `team:${item}`
+    )
 
     // if customTags is defined, convert to array
-    const customTagsParsed = JSON.parse(customTags)
+    const customTags = JSON.parse(core.getInput('custom-tags') || '[]')
+
+    // label whitelist
+    const labelsWhitelist = JSON.parse(
+      core.getInput('labels-whitelist') || '[]'
+    ).map((item: string) => item.toLowerCase().replace(/ /g, '_'))
+
+    // branches whitelist
+    // const branchesWhitelist = JSON.parse(
+    //  core.getInput('branches-whitelist') || '[]'
+    //)
 
     // here: https://octokit.github.io/rest.js/v18
     const octokit = github.getOctokit(githubToken)
@@ -46,15 +56,6 @@ async function run(): Promise<void> {
     if (pullRequestNumber === undefined) {
       throw new Error('pullRequestNumber cannot be undefined')
     }
-
-    // initialize datadog api
-    metrics.init({
-      apiKey: ddapiToken,
-      host: 'dpm',
-      prefix: metricsPrefix,
-      flushIntervalSeconds: 0,
-      defaultTags: ['env:github', `repository:${repo.repo}`, `workflow:${workflow}`, ...customTagsParsed, ...teamTags]
-    })
 
     // gather pull request information
     const {data: pullrequest} = await octokit.rest.pulls.get({
@@ -66,6 +67,30 @@ async function run(): Promise<void> {
     const {data: commits} = await octokit.rest.pulls.listCommits({
       ...repo,
       pull_number: pullRequestNumber ?? 0
+    })
+
+    // extract label name to array and convert to tag format
+    const labelTags = pullrequest.labels
+      .map(({name}) => name) // extract name from json array of objects
+      .map(name => name?.toLowerCase().replace(/ /g, '_')) // convert to lowercase and replace spaces by underscore
+      .filter(name => labelsWhitelist.includes(name)) // check if name is on whitelist
+      .filter((x, i, a) => a.indexOf(x) === i) // remove duplicates
+      .map(name => `label:${name}`) // add label: prefix
+
+    // initialize datadog api
+    metrics.init({
+      apiKey: ddapiToken,
+      host: 'dpm',
+      prefix: metricsPrefix,
+      flushIntervalSeconds: 0,
+      defaultTags: [
+        'env:github',
+        `repository:${repo.repo}`,
+        `workflow:${workflow}`,
+        ...customTags,
+        ...teams,
+        ...labelTags
+      ]
     })
 
     // common info

@@ -21,6 +21,14 @@ inputs:
     description: 'Custom tags e.g ["product:gbp", "division:flutter"]'
     required: false
     default: '[]'
+  labels-whitelist:
+    description: 'Labels whitelisted to be used as tags'
+    required: false
+    default: '[]'
+  branches-whitelist:
+    description: 'Branches whitelisted to be used as tags'
+    required: false
+    default: '[]'
 runs:
   using: 'node16'
   main: 'dist/index.js'
