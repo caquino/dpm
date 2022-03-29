@@ -9,7 +9,7 @@ async function run(): Promise<void> {
   core.info('dpm starting ...')
   try {
     core.info(`event: ${github.context.eventName}`)
-    core.info(`action: ${github.context.action}`)
+    core.info(`action: ${github.context.payload.action}`)
 
     if (github.context.eventName !== 'pull_request') {
       throw new Error('Can only run on pull requests.')
