@@ -26,7 +26,8 @@ async function run(): Promise<void> {
     }
 
     // gather prefix, append '.' to the end if it does not exist.
-    const metricsPrefix = core.getInput('metrics-prefix').replace(/([^.])$/, '$1.') || 'dpm.'
+    const metricsPrefix =
+      core.getInput('metrics-prefix').replace(/([^.])$/, '$1.') || 'dpm.'
 
     const repo = github.context.repo
     const workflow = github.context.workflow.toLowerCase().replace(/ /g, '_')
@@ -98,6 +99,16 @@ async function run(): Promise<void> {
     //const defaultBranch = pullrequest.base.repo.default_branch
     const createdAt = new Date(pullrequest.created_at).getTime()
 
+    if (github.context.payload.action === 'opened') {
+      core.info('pull_request:opened received, generating metrics ...')
+      // how many seconds since first commit until pull request was opened
+      if (commits[0].commit.committer && commits[0].commit.committer.date) {
+        const firstCommit = new Date(commits[0].commit.committer.date).getTime()
+        const openTime = Math.abs((createdAt - firstCommit) / 1000)
+        metrics.increment('time_to_open', openTime)
+      }
+    }
+
     if (github.context.payload.action === 'closed') {
       core.info('pull_request:close received, generating metrics ...')
       // how many seconds took for the pull request be merged
@@ -136,21 +147,12 @@ async function run(): Promise<void> {
 
       const changedFiles = files.map(f => f.filename).length
       metrics.increment('changed_files', changedFiles)
-
-      if (pullrequest.merged === true) {
-        metrics.increment('merged', 1)
-      }
     }
 
-    if (github.context.payload.action === 'opened') {
-      core.info('pull_request:opened received, generating metrics ...')
-      // how many seconds since first commit until pull request was opened
-      if (commits[0].commit.committer && commits[0].commit.committer.date) {
-        const firstCommit = new Date(commits[0].commit.committer.date).getTime()
-        const openTime = Math.abs((createdAt - firstCommit) / 1000)
-        metrics.increment('time_to_open', openTime)
-      }
+    if (pullrequest.merged === true) {
+      metrics.increment('merged', 1)
     }
+
     core.info('flushing metrics to datadog ...')
     metrics.flush()
   } catch (err) {
