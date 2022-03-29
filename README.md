@@ -30,5 +30,4 @@ WIP
 - columns per project
 - issues per column
 
-BUMP
-Metrics collection testsDEBUG
+
