@@ -113,6 +113,15 @@ function run() {
             //const baseBranch = pullrequest.base.ref
             //const defaultBranch = pullrequest.base.repo.default_branch
             const createdAt = new Date(pullrequest.created_at).getTime();
+            if (github.context.payload.action === 'opened') {
+                core.info('pull_request:opened received, generating metrics ...');
+                // how many seconds since first commit until pull request was opened
+                if (commits[0].commit.committer && commits[0].commit.committer.date) {
+                    const firstCommit = new Date(commits[0].commit.committer.date).getTime();
+                    const openTime = Math.abs((createdAt - firstCommit) / 1000);
+                    metrics.increment('time_to_open', openTime);
+                }
+            }
             if (github.context.payload.action === 'closed') {
                 core.info('pull_request:close received, generating metrics ...');
                 // how many seconds took for the pull request be merged
@@ -144,18 +153,9 @@ function run() {
                 const { data: files } = yield octokit.rest.pulls.listFiles(Object.assign(Object.assign({}, repo), { pull_number: pullRequestNumber !== null && pullRequestNumber !== void 0 ? pullRequestNumber : 0 }));
                 const changedFiles = files.map(f => f.filename).length;
                 metrics.increment('changed_files', changedFiles);
-                if (pullrequest.merged === true) {
-                    metrics.increment('merged', 1);
-                }
             }
-            if (github.context.payload.action === 'opened') {
-                core.info('pull_request:opened received, generating metrics ...');
-                // how many seconds since first commit until pull request was opened
-                if (commits[0].commit.committer && commits[0].commit.committer.date) {
-                    const firstCommit = new Date(commits[0].commit.committer.date).getTime();
-                    const openTime = Math.abs((createdAt - firstCommit) / 1000);
-                    metrics.increment('time_to_open', openTime);
-                }
+            if (pullrequest.merged === true) {
+                metrics.increment('merged', 1);
             }
             core.info('flushing metrics to datadog ...');
             metrics.flush();
