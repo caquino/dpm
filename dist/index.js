@@ -50,6 +50,8 @@ function run() {
     return __awaiter(this, void 0, void 0, function* () {
         core.info('dpm starting ...');
         try {
+            core.info(`event: ${github.context.eventName}`);
+            core.info(`action: ${github.context.action}`);
             if (github.context.eventName !== 'pull_request') {
                 throw new Error('Can only run on pull requests.');
             }
