@@ -23,8 +23,7 @@ async function run(): Promise<void> {
     }
 
     // gather prefix, append '.' to the end if it does not exist.
-    const metricsPrefix =
-      core.getInput('metrics-prefix').replace(/([^.])$/, '$1.') || 'dpm.'
+    const metricsPrefix = core.getInput('metrics-prefix').replace(/([^.])$/, '$1.') || 'dpm.'
     const customTags = core.getInput('custom-tags') || '[]'
     const teams = core.getInput('teams') || '[]'
 
@@ -51,13 +50,7 @@ async function run(): Promise<void> {
       host: 'dpm',
       prefix: metricsPrefix,
       flushIntervalSeconds: 0,
-      defaultTags: [
-        'env:github',
-        `repository:${repo.repo}`,
-        `workflow:${workflow}`,
-        ...customTagsParsed,
-        ...teamTags
-      ]
+      defaultTags: ['env:github', `repository:${repo.repo}`, `workflow:${workflow}`, ...customTagsParsed, ...teamTags]
     })
 
     // gather pull request information
