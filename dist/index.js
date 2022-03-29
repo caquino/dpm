@@ -137,14 +137,12 @@ function run() {
                     metrics.increment('time_to_open', openTime);
                 }
             }
+            core.info('flushing metrics to datadog ...');
+            metrics.flush();
         }
         catch (err) {
             if (err instanceof Error)
                 core.setFailed(err.message);
-        }
-        finally {
-            core.info('flushing metrics to datadog ...');
-            metrics.flush();
         }
     });
 }
