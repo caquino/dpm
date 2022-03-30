@@ -9,6 +9,10 @@ inputs:
     description: 'DataDog Token'
     required: true
     default: $
+  datadog-api-host:
+    description: 'DataDog API Host'
+    required: false
+    default: 'app.datadoghq.com'
   metrics-prefix:
     description: 'Metrics prefix'
     required: false
