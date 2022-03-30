@@ -72,11 +72,12 @@ async function run(): Promise<void> {
 
     // extract label name to array and convert to tag format
     const labelTags = pullrequest.labels
-      .map(({name}) => name) // extract name from json array of objects
-      .map(name => name?.toLowerCase().replace(/ /g, '_')) // convert to lowercase and replace spaces by underscore
-      .filter(name => labelsWhitelist.includes(name)) // check if name is on whitelist
+      .filter(({name}) => labelsWhitelist.includes(name)) // check if name is on whitelist
+      .map(({name}) => {
+        const n = name?.toLowerCase().replace(/ /g, '_')
+        return `label:${n}`
+      }) // extract name from json object, convert to lowercase and replace spaces by underscore and add label prefix
       .filter((x, i, a) => a.indexOf(x) === i) // remove duplicates
-      .map(name => `label:${name}`) // add label: prefix
 
     // initialize datadog api
     metrics.init({
