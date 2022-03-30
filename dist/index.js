@@ -63,6 +63,7 @@ function run() {
             if (!ddapiToken) {
                 throw new Error('datadog-api-token is required');
             }
+            const ddapiHost = core.getInput('datadog-api-host') || 'app.datadoghq.com';
             // gather prefix, append '.' to the end if it does not exist.
             const metricsPrefix = core.getInput('metrics-prefix').replace(/([^.])$/, '$1.') || 'dpm.';
             const repo = github.context.repo;
@@ -98,6 +99,7 @@ function run() {
             // initialize datadog api
             metrics.init({
                 apiKey: ddapiToken,
+                apiHost: ddapiHost,
                 host: 'dpm',
                 prefix: metricsPrefix,
                 flushIntervalSeconds: 0,
