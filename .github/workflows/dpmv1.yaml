@@ -1,0 +1,22 @@
+name: dpm
+on:
+  pull_request:
+    types: [opened, closed]
+jobs:
+  metrics:
+    name: DevXP - Development Performance Metrics
+    runs-on: ubuntu-latest
+    steps:
+      - name: dpm metric collection
+        uses: caquino/dpm@v1
+        continue-on-error: true
+        with:
+          metrics-prefix: 'devxp.dpm'
+          datadog-api-token: ${{ secrets.DD_API_KEY }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          labels-whitelist: '["minor", "dependencies", "enhancement", "PPB", "FDG", "documentation", "bug", "major" ]'
+        env:
+          DEBUG: 'metrics'
+
+      - name: Finishing job
+        run: "true"
